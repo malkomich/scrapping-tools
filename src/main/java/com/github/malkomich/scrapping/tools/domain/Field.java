@@ -3,19 +3,23 @@ package com.github.malkomich.scrapping.tools.domain;
 import io.vertx.core.json.JsonObject;
 
 public class Field {
-    private String name;
     private String selector;
-    private Type type = Type.TEXT;
+    private String name;
+    private Type type;
 
     Field(final JsonObject json) {
-        this.name = json.getString("name");
         this.selector = json.getString("selector");
+        this.name = json.getString("name");
         this.type = Type.valueOf(json.getString("type"));
     }
 
-    public Field(final String name, final String selector, final Type type) {
-        this.name = name;
+    public Field(final String selector, final String name) {
+        this(selector, name, Type.TEXT);
+    }
+
+    public Field(final String selector, final String name, final Type type) {
         this.selector = selector;
+        this.name = name;
         this.type = type;
     }
 
@@ -23,12 +27,12 @@ public class Field {
         return new FieldBuilder();
     }
 
-    public String getName() {
-        return this.name;
-    }
-
     public String getSelector() {
         return this.selector;
+    }
+
+    public String getName() {
+        return this.name;
     }
 
     public Type getType() {
@@ -36,20 +40,21 @@ public class Field {
     }
 
     public static class FieldBuilder {
-        private String name;
         private String selector;
+        private String name;
         private Type type;
 
         FieldBuilder() {
-        }
-
-        public Field.FieldBuilder name(final String name) {
-            this.name = name;
-            return this;
+            type = Type.TEXT;
         }
 
         public Field.FieldBuilder selector(final String selector) {
             this.selector = selector;
+            return this;
+        }
+
+        public Field.FieldBuilder name(final String name) {
+            this.name = name;
             return this;
         }
 
@@ -59,12 +64,12 @@ public class Field {
         }
 
         public Field build() {
-            return new Field(name, selector, type);
+            return new Field(selector, name, type);
         }
 
         public String toString() {
-            return "Field.FieldBuilder(name=" + this.name
-                    + ", selector=" + this.selector
+            return "Field.FieldBuilder(selector=" + this.selector
+                    + ", name=" + this.name
                     + ", type=" + this.type + ")";
         }
     }
