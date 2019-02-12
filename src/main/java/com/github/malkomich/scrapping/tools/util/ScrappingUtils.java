@@ -4,12 +4,13 @@ import com.github.malkomich.scrapping.tools.domain.PageSchema;
 import com.github.malkomich.scrapping.tools.domain.ScrappingRequest;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Objects;
 
 public class ScrappingUtils {
 
     public static ScrappingRequest generateRequest(final Class<? extends PageSchema> clazz,
                                                    final String endpoint) {
-        final PageSchema pageSchema = buildSchema(clazz);
+        final PageSchema pageSchema = buildSchema(Objects.requireNonNull(clazz));
         return ScrappingRequest.builder()
                 .url(pageSchema.getURL(endpoint))
                 .containerSelector(pageSchema.containerSelector())
@@ -19,16 +20,11 @@ public class ScrappingUtils {
 
     private static PageSchema buildSchema(final Class<? extends PageSchema> clazz) {
         try {
-            return clazz.getConstructor().newInstance();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
+            return clazz.newInstance();
+        } catch (final InstantiationException e) {
+            throw new RuntimeException("Schema could not be instantiate");
+        } catch (final IllegalAccessException e) {
             throw new RuntimeException("Constructor not accessible");
-        } catch (InvocationTargetException e) {
-            throw new RuntimeException("Error instantiating schema");
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException("Constructor not found");
         }
-        return null;
     }
 }
