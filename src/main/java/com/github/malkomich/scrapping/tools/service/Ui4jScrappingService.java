@@ -11,8 +11,10 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.webfolder.ui4j.api.browser.Page;
 import io.webfolder.ui4j.api.dom.Element;
+import io.webfolder.ui4j.api.util.Ui4jException;
 
 import javax.xml.ws.WebServiceException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +25,8 @@ import java.util.stream.Collectors;
 import static io.webfolder.ui4j.api.browser.BrowserFactory.getWebKit;
 
 public class Ui4jScrappingService implements ScrappingService {
+
+    static final String SCRAPPING_EMPTY_ERROR = "ERROR: Scrapping finished with empty results.";
 
     static {
         System.setProperty("jsse.enableSNIExtension", "false");
@@ -43,7 +47,7 @@ public class Ui4jScrappingService implements ScrappingService {
             }
             final ScrappingResponse scrappingResponse = (ScrappingResponse) response.result();
             if (scrappingResponse.isEmpty()) {
-                handler.handle(Future.failedFuture("ERROR: Scrapping finished with empty results."));
+                handler.handle(Future.failedFuture(SCRAPPING_EMPTY_ERROR));
             } else {
                 handler.handle(Future.succeededFuture(scrappingResponse));
             }
@@ -56,7 +60,7 @@ public class Ui4jScrappingService implements ScrappingService {
                     .containers(executeScrap(page, request))
                     .build();
             future.complete(response);
-        } catch (final WebServiceException error) {
+        } catch (final WebServiceException | Ui4jException error) {
             future.fail(error);
         }
     }
@@ -68,8 +72,10 @@ public class Ui4jScrappingService implements ScrappingService {
 
     private List<ScrappingContainer> executeScrap(final Page page,
                                                   final ScrappingRequest request) {
-        return page.getDocument()
-                .queryAll(request.getContainerSelector())
+        return Optional.ofNullable(page)
+                .map(Page::getDocument)
+                .map(document -> document.queryAll(request.getContainerSelector()))
+                .orElse(Collections.emptyList())
                 .stream()
                 .map(element -> scrapContainer(element, request))
                 .collect(Collectors.toList());

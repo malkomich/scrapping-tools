@@ -3,7 +3,6 @@ package com.github.malkomich.scrapping.tools.util;
 import com.github.malkomich.scrapping.tools.domain.PageSchema;
 import com.github.malkomich.scrapping.tools.domain.ScrappingRequest;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Objects;
 
 public class ScrappingUtils {

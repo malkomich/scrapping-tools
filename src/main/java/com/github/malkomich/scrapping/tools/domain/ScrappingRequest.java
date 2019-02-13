@@ -2,6 +2,7 @@ package com.github.malkomich.scrapping.tools.domain;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
@@ -15,25 +16,19 @@ public class ScrappingRequest {
     public ScrappingRequest(final JsonObject json) {
         this.url = json.getString("url");
         this.containerSelector = json.getString("containerSelector");
-        this.fields = getFields(json);
+        this.fields = fieldsFromJson(json);
+        checkParameters(url, containerSelector, fields);
     }
 
     public ScrappingRequest(final String url, final String containerSelector, final Collection<Field> fields) {
         this.url = url;
         this.containerSelector = containerSelector;
         this.fields = fields;
+        checkParameters(url, containerSelector, fields);
     }
 
     public static ScrappingRequestBuilder builder() {
         return new ScrappingRequestBuilder();
-    }
-
-    private Collection<Field> getFields(final JsonObject json) {
-        return json.getJsonArray("fields", new JsonArray())
-            .stream()
-            .map(JsonObject.class::cast)
-            .map(Field::new)
-            .collect(Collectors.toList());
     }
 
     public JsonObject toJson() {
@@ -50,6 +45,23 @@ public class ScrappingRequest {
 
     public Collection<Field> getFields() {
         return this.fields;
+    }
+
+    private void checkParameters(final String url, final String containerSelector, final Collection<Field> fields) {
+        if (StringUtils.isBlank(url) || StringUtils.isBlank(containerSelector)) {
+            throw new IllegalArgumentException("URL or selectors cannot be empty");
+        }
+        if (fields == null || fields.isEmpty()) {
+            throw new IllegalArgumentException("Fields not provided");
+        }
+    }
+
+    private Collection<Field> fieldsFromJson(final JsonObject json) {
+        return json.getJsonArray("fields", new JsonArray())
+            .stream()
+            .map(JsonObject.class::cast)
+            .map(Field::new)
+            .collect(Collectors.toList());
     }
 
     public static class ScrappingRequestBuilder {
